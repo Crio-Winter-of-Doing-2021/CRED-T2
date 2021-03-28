@@ -2,8 +2,11 @@ import React from 'react';
 import { Helmet } from 'react-helmet';
 import { useState } from "react";
 import useStyles from './styles';
-import { Container, Button, TextField, Dialog, DialogTitle } from '@material-ui/core';
+import { Paper, Button, TextField, Dialog, DialogTitle, Grid, Box, InputLabel} from '@material-ui/core';
 import CheckCircleOutlineIcon from '@material-ui/icons/CheckCircleOutline';
+import  VisibilityIcon from '@material-ui/icons/Visibility';
+import  PeopleAltIcon from '@material-ui/icons/PeopleAlt';
+import Avatar from "@material-ui/core/Avatar";
 import { Link } from 'react-router-dom';
 import { Alert } from '@material-ui/lab';
 import axios from 'axios';
@@ -17,31 +20,40 @@ const Signup = () => {
     const [repass, setRepass] = useState("");
     const [errEmail, setErremail] = useState(false);
     const [errPhone, setErrphone] = useState(false);
+    const [errPassMatch, setErrpassmatch] = useState(false);
     const [errPass, setErrpass] = useState(false);
     const [duplicate, setDuplicate] = useState(false);
+    const [passwordShown,setPasswordShown] = useState(false);
     const [open, setOpen] = useState(false)
 
     const EmailErr = () => (
         <div >
-          <Alert style={{width:'20%',margin:'auto'}} severity="error">Please enter valid Email</Alert>
+          <Alert style={{width:'70%',margin:'10px auto'}} severity="error">Please enter valid Email</Alert>
         </div>
       )
 
     const PhoneErr = () => (
         <div >
-          <Alert style={{width:'20%',margin:'auto'}} severity="error">Please enter valid phone number</Alert>
+          <Alert style={{width:'90%',margin:'10px auto'}} severity="error">Please enter valid phone number</Alert>
         </div>
       )
 
-    const PassErr = () => (
+    const PassMatchErr = () => (
         <div >
-          <Alert style={{width:'20%',margin:'auto'}} severity="error">Passwords do not match</Alert>
+          <Alert style={{width:'70%',margin:'10px auto'}} severity="error">Passwords do not match</Alert>
         </div>
       )
+    
+    const PassErr = () => (
+        <div >
+          <Alert style={{width:'90%',margin:'10px auto'}} severity="error">Must be minimum 8 characters long</Alert>
+        </div>
+      )
+
 
     const Duplicate = () => (
         <div >
-          <Alert style={{width:'40%',margin:'auto'}} severity="error">Account with given Email already exists</Alert>
+          <Alert style={{width:'100%',margin:'10px auto'}} severity="error">Account with given Email/Phone already exists</Alert>
         </div>
       )
 
@@ -54,6 +66,9 @@ const Signup = () => {
         </Dialog>
     )
 
+    const togglePasswordVisiblity = () => {
+        setPasswordShown(passwordShown ? false : true);
+      };
 
 
     const validate = () => {
@@ -67,30 +82,37 @@ const Signup = () => {
             valid = false;
         }
         if (pass!=repass){
-            setErrpass(true)
+            setErrpassmatch(true)
             valid = false;
+        }
+        if (pass.length<8){
+            setErrpass(true)
+            valid=false;
         }
         return valid
     }
 
     const onSubmit = async (e) => {
         e.preventDefault()
+        setErremail(false);
+        setErrphone(false);
+        setErrpass(false)
+        setErrpassmatch(false)
         if (validate()){
 
 
             const userObject = {
                 name: name,
                 email: email,
-                phone: phone,
-                pass: pass
+                mobile: phone,
+                password: pass
             };
-            setOpen(true);
 
             
 
-            /*await axios({
+            await axios({
                 method: 'POST',
-                url: `localhost:8000/signup`,
+                url: "http://localhost:8081/signup",
                 headers: {
                   'Content-Type': 'application/json',
                 },
@@ -100,97 +122,111 @@ const Signup = () => {
                     if(res.status==201){
                         setOpen(true);
                     }
-                    else if(res.status==401){
-                        setDuplicate(true);
-                    }
-                    else if(res.status==404){
-                        document.getElementById("alert_err").innerHTML="Username does not exist";
-                        setAlert("true");
-                    }
                 }).catch((error) => {
-                    console.log(error);
+                    if(error.response.status==409){
+                        setDuplicate(true);
+                       }
                 });
-            */
+            
             
         }
     }
 
     return(
         <>
-        <Helmet><title>User SignUp</title></Helmet>
-        <Container className={classes.container}>
+        <Helmet><title>User Signup</title></Helmet>
+        <div className={classes.main}>
+        <div className={classes.paper_container}>
+        <Paper className={classes.paper}>
+        <Avatar className={classes.avatar}>
+            <PeopleAltIcon className={classes.icon} />
+          </Avatar>
             <form onSubmit={onSubmit} className={classes.form}>
-                <h2>Enter details</h2>
+
                 <div className={classes.input}>
-                <label className={classes.label} htmlFor="name" >Name</label>
+                <InputLabel htmlFor="name" className={classes.labels}>
+                Full Name
+                </InputLabel>
                 <TextField className={classes.fields}
                     id = "name"
-                    variant="outlined"
                     onChange={(e) => {setName(e.target.value)}}
                     size="small"
                     required
                 />
                 </div>
+                <div className={classes.input}>
+                <InputLabel htmlFor="email" className={classes.labels}>
+                Email
+                </InputLabel>
 
-                <div className={classes.input} >
-                <label className={classes.label} htmlFor="email" >Email  </label>
                 <TextField className={classes.fields}
                     id = "email"
-                    variant="outlined"
                     onChange={(e) => {setEmail(e.target.value)}}
                     size="small"
                     required
                 />
-                </div>
 
                 { errEmail ? <EmailErr /> : null }
-
+                </div>
                 <div className={classes.input}>
-                <label className={classes.label} htmlFor="phone" >Phone</label>
+                <InputLabel htmlFor="phone" className={classes.labels}>
+                Phone
+                </InputLabel>
                 <TextField className={classes.fields}
                     id = "phone"
-                    variant="outlined"
                     onChange={(e) => {setPhone(e.target.value)}}
                     size="small"
                     required
                 />
-                </div>
 
                 { errPhone ? <PhoneErr /> : null }
 
-                <div className={classes.passinput}>
-                <label className={classes.label} htmlFor="pass" >Password</label>
+                </div>
+                <div className={classes.input}>
+                <InputLabel htmlFor="pass" className={classes.labels}>
+                Password
+                </InputLabel>
+
                 <TextField className={classes.fields}
                     id = "pass"
-                    variant="outlined"
-                    type="password"
+                    type={passwordShown ? "text" : "password"}
                     onChange={(e) => {setPass(e.target.value)}}
                     size="small"
                     required
                 />
+                <i className={classes.eyeicon} onClick={togglePasswordVisiblity}> <VisibilityIcon/> </i>
+                { errPass ? <PassErr /> : null }
+                </div>
+                <div className={classes.input}>
+                <InputLabel htmlFor="pass2" className={classes.labels}>
+                Confirm Password
+                </InputLabel>
 
-                <label className={classes.passlabel} htmlFor="pass2" >Confirm Password</label>
                 <TextField className={classes.fields}
                     id = "pass2"
-                    variant="outlined"
-                    type="password"
+                    type={passwordShown ? "text" : "password"}
                     onChange={(e) => {setRepass(e.target.value)}}
                     size="small"
                     required
                 />
-                </div>
 
-                { errPass ? <PassErr /> : null }
+                { errPassMatch ? <PassMatchErr /> : null }
 
                 { duplicate ? <Duplicate /> : null }
-
-                <div className={classes.submitbutton}>
-                <Button type="submit" color="primary" variant="contained">Create Account</Button>
                 </div>
+
+                <div className={classes.submitbuttondiv}>
+                <Button className={classes.submitbutton} type="submit"  variant="contained">Create Account</Button>
+                </div>
+                
             </form>
-            <Link style={{textDecoration:"none",color:"black"}}  to='/'><Button  variant="contained" size="small">Back</Button></Link>
+            <div className={classes.backbutton}>
+            <Link  style={{textDecoration:"none",color:"black"}}  to='/'><Button  variant="contained" size="small">Back</Button></Link>
+            </div>
             <Success open={open}/>
-        </Container>
+        </Paper>
+        </div>
+        </div>
         </>
     )
 }

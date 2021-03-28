@@ -1,14 +1,18 @@
 import React from 'react';
-import {useState} from 'react';
+import {useState, useEffect } from 'react';
 import axios from 'axios';
 import useStyles from './styles';
 import { Link } from 'react-router-dom';
-import { Container, Button, Select, MenuItem, TextField } from '@material-ui/core';
+import { Container, Button, Select, MenuItem, TextField, Paper } from '@material-ui/core';
+import Image from '../../assets/no_trans.png'
 import { DataGrid } from '@material-ui/data-grid';
+import UserProfile from '../UserProfile';
 
 const Statement = (props) =>{
     const classes = useStyles();
     const [id,setCardID] = useState(props.location.state.id);
+    const [noTrans, setNoTrans] = useState(false)
+    const token = UserProfile.getToken();
     const [page,setPage] = useState(0);
     const curdate = new Date();
     let curmonth = (curdate.getMonth())+1;
@@ -25,98 +29,44 @@ const Statement = (props) =>{
     const [newyear,setNewYear] = useState('');
     const [filter_err,setFilterErr] = useState(false);
     const month_names = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
-    //const [transactions, setTransactions] = useState([]);
-    //GET /cards/{id}/statements/{year}/{month}
-    const tempdata = [
-        {
-            id: "1",
-            tr_id: "1",
-            amount: 101212,
-            date: "10/12/2021",
-            credit_debit: "Credit",
-            vendor: "Amazon",
-            category: "Food"
-        },
-        {
-            id: "2",
-            tr_id: "1",
-            amount: 101212,
-            date: "10/12/2021",
-            credit_debit: "Credit",
-            vendor: "Amazon",
-            category: "Food"
-        },
-        {
-            id: "3",
-            tr_id: "2",
-            amount: 101212,
-            date: "10/12/2021",
-            credit_debit: "Credit",
-            vendor: "Amazon",
-            category: "Food"
-        },
-        {
-            id: "4",
-            tr_id: "9",
-            amount: 101212,
-            date: "10/12/2021",
-            credit_debit: "Credit",
-            vendor: "Amazon",
-            category: "Food"
-        },
-        {
-            id: "5",
-            tr_id: "8",
-            amount: 101212,
-            date: "10/12/2021",
-            credit_debit: "Credit",
-            vendor: "Amazon",
-            category: "Misc"
-        },
-        {
-            id: "6",
-            tr_id: "6",
-            amount: 101212,
-            date: "10/12/2021",
-            credit_debit: "Credit",
-            vendor: "Amazon",
-            category: "Food"
-        },
-        {
+    const [transactions, setTransactions] = useState([]);
 
-            id: "7",
-            tr_id: "5",
-            amount: 101212,
-            date: "10/12/2021",
-            credit_debit: "Credit",
-            vendor: "Amazon",
-            category: "Food"
-        },
-        {
-            id: "8",
-            tr_id: "3",
-            amount: 101212,
-            date: "10/12/2021",
-            credit_debit: "Credit",
-            vendor: "Flipkart",
-            category: "Food"
-        },
-
-    ]
-    const [transactions, setTransactions] = useState(tempdata);
-
-    /*useEffect(() => {
+    useEffect(() => {
 
         axios
-            .get('localhost:8000/cards/${id}/statements/${year}/${month}')
+            .get(`http://localhost:8081/cards/${id}/statements/${year}/${month}`,
+                {headers:{"token":`${token}`}}
+            )
             .then((response) => response.data)
             .then((transactionsData) => {
-                console.log(cardData);
-                setTransactions(transactionsData);
+                console.log(transactionsData);
+                setTransactions(transactionsData.data);
+                setNoTrans(false);
             })
-          .catch((error) => console.log(error));
+          .catch((error) => {
+            if(error.response.status===404){
+                setTransactions([]);
+                setNoTrans(true);
+            }              
+          });
     }, []);
-    */
+
+
+    const No_Transactions = () => (
+        <>
+            <div className={classes.notrans_div}>
+                <div className={classes.notrans}>
+                <div className={classes.imgdiv}>
+                <img src={Image} height="100px"/>
+                </div>
+                <h3>No transactions</h3>
+                <h5>Couldn't fetch any transactions for this month</h5>
+                </div>
+            </div>
+        </>
+        )
+    
+    
 
 
     const Validate = () => {
@@ -132,13 +82,22 @@ const Statement = (props) =>{
         if (Validate()){
             setFilterErr(false)
             axios
-                .get('localhost:8000/cards/${id}/statements/${newyear}/${newmonth}')
+                .get(`http://localhost:8081/cards/${id}/statements/${newyear}/${newmonth}`,
+                {headers:{"token":`${token}`}}
+                
+                )
                 .then((response) => response.data)
                 .then((transactionsData) => {
                     console.log(transactionsData);
-                    setTransactions(transactionsData);
+                    setTransactions(transactionsData.data);
+                    setNoTrans(false);
                 })
-            .catch((error) => console.log(error));
+            .catch((error) => {
+                if(error.response.status===404){
+                    setTransactions([]);
+                    setNoTrans(true);
+                }
+            });
 
             setMonth(newmonth);
             setYear(newyear)
@@ -153,9 +112,10 @@ const Statement = (props) =>{
 
     return (
         <>
-        <Container className={`${classes.root} ${classes.container}`}>
-        <h1>Statement</h1>
-        <h3> Transactions in {month_names[month-1]} {year}</h3>
+        <div className={classes.main}>
+        <div className={classes.paper_container}>
+        <Paper className={classes.paper}>
+        <h2 className={classes.heading}> Transactions in {month_names[month-1]} {year}</h2>
         <form className={classes.form} onSubmit={handleSubmit}>
         <label className={classes.label} htmlFor="select_month" >Month</label>
         <Select
@@ -191,9 +151,9 @@ const Statement = (props) =>{
          <Button className={classes.button} type="submit" color="primary" size="small" variant="contained">Search</Button>
         </form>
 
-        { filter_err ? <p style={{color:"red"}}>Enter valid month and year</p> : null }
+        { filter_err ? <p style={{color:"red", margin:"0"}}>Enter valid month and year</p> : null }
         
-        <div className={classes.grid}>
+        <div className={classes.grid} style={{display: noTrans ? "none" : "block" }}>
         <DataGrid
         page={page}
         onPageChange={(params) => {
@@ -201,6 +161,7 @@ const Statement = (props) =>{
         }}
         pageSize={5}
         pagination
+        getRowId = {(row) => row.transaction_id}
         columns = {[{ field: 'date', headerName: 'Date', width: 150}, 
         { field: 'vendor', headerName: 'Vendor', width: 200 }, 
         { field: 'credit_debit', headerName: 'Credit/Debit', width: 150 }, 
@@ -209,12 +170,17 @@ const Statement = (props) =>{
         rows = {transactions}
         />
         </div>
+
+        {noTrans ? <No_Transactions/> : null }
         <div>
         <Link style={{textDecoration:"none",color:"black"}}  to='/cards'>
-            <Button  className={classes.backbutton} variant="contained" color="secondary" size="small">Back</Button>
+            <Button  className={classes.backbutton} style={{ margin: filter_err ? "0" : "10px 0"  }} variant="contained"  size="small">Back</Button>
             </Link>
         </div>
-        </Container>
+        
+        </Paper>
+        </div>
+        </div>
         </>
     )
 }

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Route} from 'react-router-dom';
 import  Main  from './components/main/main';
 import  Cards  from './components/cards/cards';

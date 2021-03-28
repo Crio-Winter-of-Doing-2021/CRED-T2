@@ -1,14 +1,32 @@
 import { makeStyles } from '@material-ui/core/styles';
+import Image from '../../assets/bg2.svg'
+export default makeStyles(() => ({
 
-export default makeStyles((theme) => ({
-    root:{
-        '& .MuiContainer-root': {
-           padding: 0,
-          },
+    main:{
+        backgroundImage: `url(${Image})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        height:"100vh"
     },
-    container:{
+    paper_container:{
+        display: "block",
+        width: "95%",
+        margin:"0 auto",
+        
+    },
+    heading:{
+        paddingTop:"20px"
+    },
+    paper:{
         textAlign:"center",
+        backgroundColor:"#FAF9F6",
+        height:"95vh"
+        
     },
+
     grid:{
         height: "400px",
         width: "68%",
@@ -17,6 +35,16 @@ export default makeStyles((theme) => ({
 
     form:{
         marginBottom: "20px"
+    },
+
+    notrans_div:{
+       height:"65.5vh",
+    },
+
+    notrans:{
+        position:"absolute",
+        top:"40%",
+        left:"40%"
     },
 
     label:{

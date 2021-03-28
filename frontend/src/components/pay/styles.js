@@ -1,9 +1,31 @@
 import { makeStyles } from '@material-ui/core/styles';
-
+import BgImage from '../../assets/bg5.jpg'
 export default makeStyles(() => ({
 
-    container:{
-        textAlign:"center"
+
+    main:{
+        backgroundImage: `url(${BgImage})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        height : '100vh'
+    },
+
+    paper_container:{
+        display: "block",
+        width: "auto",
+        height:"80vh",
+        marginRight: "25%",
+        marginLeft: "25%",
+        paddingTop:"20px"
+    },
+
+    paper:{
+        position: "relative",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        backgroundColor:"#FAF9F6",
+       
     },
 
     label:{
@@ -11,15 +33,25 @@ export default makeStyles(() => ({
         marginRight:"10px"
     },
 
+    line:{
+        color:"black",
+        width:"100%"
+    },
+
     input:{
         marginBottom: "20px"
     },
     button:{
-        marginRight: "20px",
-        width: "10%"
+        margin:"20px auto",
+        textAlign:"center",
     },
-    buttondiv:{
-       marginTop:"10px"
-    },
+
+    paybutton:{
+        backgroundColor: "#36454F",
+        "&:hover":{
+            backgroundColor: "#36454F",
+            filter: "brightness(90%)",
+        }
+    }
 
 }));

@@ -1,9 +1,10 @@
 import React from 'react';
 import Cards from 'react-credit-cards';
+import { Helmet } from 'react-helmet';
 import { useState } from 'react';
 import 'react-credit-cards/es/styles-compiled.css';
 import useStyles from './styles';
-import { Container,TextField, Button, Dialog, DialogTitle, Grid } from '@material-ui/core';
+import { TextField, Button, Dialog, DialogTitle, Grid, Paper} from '@material-ui/core';
 import CheckCircleOutlineIcon from '@material-ui/icons/CheckCircleOutline';
 import { Alert } from '@material-ui/lab';
 import { Link } from 'react-router-dom';
@@ -11,9 +12,10 @@ import UserProfile from '../UserProfile';
 import axios from 'axios';
 
 
-const AddCard = ({card}) => {
+const AddCard = () => {
     const classes = useStyles();
     const user_id = UserProfile.getId();
+    const token = UserProfile.getToken();
     const [name_on_card, setName] = useState("");
     const [expiry_date, setExpiry] = useState("");
     const [card_number, setNumber] = useState("");
@@ -56,13 +58,13 @@ const AddCard = ({card}) => {
 
     const DateErr = () => (
         <div style={{display:"inline"}}>
-          <Alert style={{width:'20%'}} severity="error">Enter valid date</Alert>
+          <Alert style={{width:'70%'}} severity="error">Enter valid date</Alert>
         </div>
       )
 
     const NumberErr = () => (
         <div >
-          <Alert style={{width:'30%'}} severity="error">Enter valid card number</Alert>
+          <Alert style={{width:'80%'}} severity="error">Card already taken</Alert>
         </div>
       )
 
@@ -78,11 +80,29 @@ const AddCard = ({card}) => {
     const validate = () => {
         let temp_number = card_number.replace(/\s/g,'');
         let valid = true
-        if (expiry_date.length!==5){
+        
+        if (expiry_date.length!==5 ||  !(/^(0[1-9]|1[0-2])\/\d{2}$/.test(expiry_date))){
             setErrdate(true);
             valid = false;
         }
-        if (temp_number.length!==16 && /^\d+$/.test(temp_number)){
+        else {
+            let month = expiry_date.substring(0,2)
+            let year = expiry_date.substring(3,5)
+            const curdate = new Date();
+            let curmonth = (curdate.getMonth())+1;
+            if (curmonth<10){
+                curmonth = '0'+curmonth;
+            }
+            else{
+                curmonth = curmonth.toString();
+            }
+            let curyear = curdate.getFullYear().toString().substr(-2);
+            if ((year<curyear) || (month<curmonth && year===curyear)){
+                setErrdate(true);
+                valid = false
+            }
+        }
+        if (temp_number.length!==16 || !(/^\d+$/.test(temp_number))){
             setErrnumber(true);
             valid = false;
         }
@@ -93,48 +113,47 @@ const AddCard = ({card}) => {
     const onSubmit = async(e) => {
 
         e.preventDefault()
-
+        setErrdate(false);
+        setErrnumber(false);
         
         if (validate()){
-        
+        let card_no = card_number.replace(/\s/g,'');
         const userObject = {
             name_on_card: name_on_card,
-            card_number: card_number,
+            card_number: card_no,
             expiry_date:expiry_date,
-            balance:0,
-            user_id:user_id,
         };
 
-        setOpen(true)
-
-        /*await axios({
+        await axios({
             method: 'POST',
-            url: `localhost:8000/cards`,
+            url: "http://localhost:8081/cards",
             headers: {
-              'Content-Type': 'application/json',
+              "token": `${token}`,
             },
             data: userObject
             })
             .then((res) => {
-                if(res.status==201){
+                if(res.status===201){
                     setOpen(true)
                 }
-                else if(res.status==400){
-                    
-                    
-                }
             }).catch((error) => {
-                console.log(error);
+                if(error.response.status===400){
+                    setErrnumber(true);
+                }
+                if(error.response.status===409){
+                    setErrnumber(true);
+                }
             });
-        */
+        
         }
 
     }
 
     return(
         <>
-        <Grid className={classes.grid} container  spacing={3} style = {{height:"100vh",width:"100vw",margin:"0"}} alignItems="stretch" >
-        <Grid className={classes.left} item xs={12} sm={4}>
+        <Helmet><title>Add Card</title></Helmet>
+        <div className={classes.main}>
+        <Paper className={classes.paper}>
         <div className={classes.carddiv}>
         <Cards 
           expiry = {expiry_date}
@@ -143,64 +162,68 @@ const AddCard = ({card}) => {
           focused = {focus}
         />
         </div>
-        </Grid>
-        <Grid className={classes.left} item xs={12} sm={8}>
-        <form onSubmit={onSubmit}>
-        <h1>Enter card details</h1>
-
+        
+        <form onSubmit={onSubmit} className={classes.form}>
+        
         <div className={classes.input}>
-            <label className={classes.label} htmlFor="name" >Name on Card</label>
             <TextField className={classes.fields}
-                id = "name"
-                variant="outlined"
+                id = "standard-input"
+                label="Name on Card"
                 onChange={(e) => {setName(e.target.value)}}
                 onFocus={(e) => {setFocus(e.target.name)}}
                 size="small"
+                InputLabelProps={{ required: false }}
                 required
             />
         </div>
-
+        
         <div className={classes.input}>
-            <label className={classes.label} htmlFor="card-number" >Card Number</label>
             <TextField className={classes.fields}
                 id = "card-number"
-                variant="outlined"
+                label="Card Number"
                 value = {card_number}
                 onChange={(e) => {handleCardNumber(e.target.value)}}
                 onFocus={(e) => {setFocus(e.target.name)}}
                 inputProps={{ maxLength: 19 }}
+                InputLabelProps={{ required: false }}
                 size="small"
                 placeholder="XXXX-XXXX-XXXX-XXXX"
                 required
+                error={errNumber}
+                helperText={errNumber ? "Enter valid card number" : "" }
             />
         </div>
-        { errNumber ? <NumberErr /> : null }
-
+        
+        
+        
         <div className={classes.input}>
-            <label className={classes.label} htmlFor="expiry-date" >Expiry-Date</label>
             <TextField className={classes.fields}
                 id = "expiry-date"
-                variant="outlined"
+                label="Expiry Date"
                 value={expiry_date}
                 onChange={(e) => {handleExpiry(e.target.value)}}
                 onKeyDown={(e) => {handleBackspace(e)}}
                 onFocus={(e) => {setFocus(e.target.name)}}
                 size="small"
+                InputLabelProps={{ required: false }}
                 inputProps={{ maxLength: 5 }}
                 placeholder="MM/YY"
                 required
+                error={errDate}
+                helperText={errDate ? "Enter Valid Date" : "" }
             />
         </div>
-        { errDate ? <DateErr /> : null }
         
         <div className={classes.buttondiv}>
         <Button className={classes.submitbutton} type="submit" color="primary" variant="contained">Add Card</Button>
+        </div>
+        <div className={classes.buttondiv}>
         <Link style={{textDecoration:"none",color:"black"}}  to='/cards'><Button  variant="contained" >Cancel</Button></Link>
         </div>
         </form>
-        </Grid>
-        </Grid>
         <Success open={open}/>
+        </Paper>
+        </div>
         </>
     )
 }

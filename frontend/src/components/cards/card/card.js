@@ -4,12 +4,10 @@ import { useState } from 'react';
 import 'react-credit-cards/es/styles-compiled.css';
 import useStyles from './styles';
 import { Container, Button } from '@material-ui/core';
-import { Link } from 'react-router-dom';
+import { Link, useHistory } from 'react-router-dom';
 const CardItem = ({card}) => {
     const classes = useStyles();
-    const [focus, setFocus] = useState("")
-    
-    
+
     return(
         <>
         <Container className={classes.card_container}>
@@ -20,11 +18,13 @@ const CardItem = ({card}) => {
           number={card.card_number}
         />
 
-        <h3>Balance - {card.balance}</h3>
-        <Link style={{textDecoration:"none"}} 
+        {card.balance==0 ? <h3>Fully Paid</h3> : <div><h3 style={{color:"black"}}>Due - {card.balance}</h3></div>}
+
+        <Link style={{textDecoration:"none",display:card.balance>0 ? "inline" : "none"}} 
         to={{ pathname: '/pay', state: { balance: card.balance , card_number: card.card_number, id: card.card_id} }}>
-          <Button className={classes.paybutton} color="primary" variant="contained">Pay Bill</Button> 
+          <Button className={classes.paybutton} color="primary" variant="contained" >Pay Bill</Button> 
         </Link>
+
         <Link style={{textDecoration:"none"}} 
         to={{ pathname: '/statement', state: { id: card.card_id} }}>
           <Button className={classes.trbutton}  color="primary" variant="contained">Show transactions</Button>

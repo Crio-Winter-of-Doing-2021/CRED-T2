@@ -1,8 +1,16 @@
-import { makeStyles } from '@material-ui/core/styles';
+import { darken, makeStyles } from '@material-ui/core/styles';
 import Image from '../../assets/home-card.jpg'
 export default makeStyles(() => ({
     grid:{
     },
+    heading:{
+        color: "white",
+        position: "relative",
+        textAlign:"center",
+        top: "20%",
+        width:"60%"
+    },
+
     left:{
         display: "block",
         backgroundImage: `url(${Image})`,
@@ -12,7 +20,8 @@ export default makeStyles(() => ({
     },
     right:{
         textAlign: "center",
-        borderLeft: "1px solid black"
+        borderLeft: "1px solid black",
+        backgroundColor:"whitesmoke"
     },
 
     loginbutton:{
@@ -28,4 +37,24 @@ export default makeStyles(() => ({
         display: "block",
     },
 
+    fields:{
+        margin:"20px 0"
+    },
+    eyeicon:{
+        position:"absolute",
+        marginTop:"27px",
+        marginLeft:"-27px",
+        color:"grey",
+        cursor:"pointer"
+    },
+
+    createbutton:{
+        fontWeight: "bold",
+        backgroundColor: "#fe921f",
+        "&:hover":{
+            backgroundColor: "#fe921f",
+            filter: "brightness(90%)",
+        }
+    },
+    
 }));
